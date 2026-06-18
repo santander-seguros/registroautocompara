@@ -343,7 +343,7 @@
       if (error) {
         console.error("Error de Supabase:", error);
 
-        message.textContent = "Error Supabase: " + error.message;
+        message.textContent = "No pudimos guardar tus datos. Intenta nuevamente.";
         message.className = "message error";
 
         submitBtn.disabled = false;
