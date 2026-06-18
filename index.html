@@ -231,135 +231,166 @@
     </div>
   </main>
 
-  <script>
-    const SUPABASE_URL = "https://cbjjzydlbnpsdkhufsok.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_hO-lDfWkWTbhla8tB5ehzg_gTufh3o4";
+ <script>
+  const SUPABASE_URL = "https://cbjjzydlbnpsdkhufsok.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_hO-lDfWkWTbhla8tB5ehzg_gTufh3o4";
+  const EMAIL_FUNCTION_URL = "https://cbjjzydlbnpsdkhufsok.supabase.co/functions/v1/send-confirmation";
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const form = document.getElementById("leadForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const message = document.getElementById("message");
+  const form = document.getElementById("leadForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const message = document.getElementById("message");
 
-    const nombreInput = document.getElementById("nombre");
-    const telefonoInput = document.getElementById("telefono");
-    const correoInput = document.getElementById("correo");
+  const nombreInput = document.getElementById("nombre");
+  const telefonoInput = document.getElementById("telefono");
+  const correoInput = document.getElementById("correo");
 
-    const groupName = document.getElementById("groupName");
-    const groupPhone = document.getElementById("groupPhone");
-    const groupEmail = document.getElementById("groupEmail");
+  const groupName = document.getElementById("groupName");
+  const groupPhone = document.getElementById("groupPhone");
+  const groupEmail = document.getElementById("groupEmail");
 
-    telefonoInput.addEventListener("input", () => {
-      telefonoInput.value = telefonoInput.value.replace(/[^0-9]/g, "").slice(0, 10);
+  telefonoInput.addEventListener("input", () => {
+    telefonoInput.value = telefonoInput.value.replace(/[^0-9]/g, "").slice(0, 10);
+  });
+
+  function setError(group, text, input) {
+    group.classList.add("error");
+    group.querySelector(".error-text").textContent = text;
+    message.textContent = text;
+    message.className = "message error";
+    input.focus();
+  }
+
+  function clearErrors() {
+    [groupName, groupPhone, groupEmail].forEach(group => {
+      group.classList.remove("error");
+      group.querySelector(".error-text").textContent = "";
     });
 
-    function setError(group, text, input) {
-      group.classList.add("error");
-      group.querySelector(".error-text").textContent = text;
-      message.textContent = text;
+    message.textContent = "";
+    message.className = "message";
+  }
+
+  function validarFormulario() {
+    clearErrors();
+
+    const nombre = nombreInput.value.trim();
+    const telefono = telefonoInput.value.trim();
+    const correo = correoInput.value.trim();
+
+    if (nombre === "") {
+      setError(groupName, "Llena tu nombre para continuar.", nombreInput);
+      return false;
+    }
+
+    if (nombre.length < 3) {
+      setError(groupName, "El nombre debe tener al menos 3 caracteres.", nombreInput);
+      return false;
+    }
+
+    if (telefono === "") {
+      setError(groupPhone, "Llena tu teléfono para continuar.", telefonoInput);
+      return false;
+    }
+
+    if (!/^[0-9]{10}$/.test(telefono)) {
+      setError(groupPhone, "El teléfono debe tener exactamente 10 números.", telefonoInput);
+      return false;
+    }
+
+    if (correo === "") {
+      setError(groupEmail, "Llena tu correo para continuar.", correoInput);
+      return false;
+    }
+
+    if (!correo.includes("@")) {
+      setError(groupEmail, "El correo no tiene @.", correoInput);
+      return false;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) {
+      setError(groupEmail, "Escribe un correo válido, por ejemplo nombre@correo.com.", correoInput);
+      return false;
+    }
+
+    return true;
+  }
+
+  async function enviarCorreoConfirmacion(nombre, correo) {
+    const response = await fetch(EMAIL_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        nombre: nombre,
+        correo: correo
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error("Error al enviar correo:", result);
+      return false;
+    }
+
+    return true;
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!validarFormulario()) {
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Enviando...";
+
+    const nombre = nombreInput.value.trim();
+    const telefono = telefonoInput.value.trim();
+    const correo = correoInput.value.trim().toLowerCase();
+
+    const { error } = await supabaseClient
+      .from("leads")
+      .insert([
+        {
+          nombre: nombre,
+          telefono: telefono,
+          correo: correo
+        }
+      ]);
+
+    if (error) {
+      console.error("Error de Supabase:", error);
+
+      message.textContent = "No pudimos guardar tus datos. Intenta nuevamente.";
       message.className = "message error";
-      input.focus();
-    }
-
-    function clearErrors() {
-      [groupName, groupPhone, groupEmail].forEach(group => {
-        group.classList.remove("error");
-        group.querySelector(".error-text").textContent = "";
-      });
-
-      message.textContent = "";
-      message.className = "message";
-    }
-
-    function validarFormulario() {
-      clearErrors();
-
-      const nombre = nombreInput.value.trim();
-      const telefono = telefonoInput.value.trim();
-      const correo = correoInput.value.trim();
-
-      if (nombre === "") {
-        setError(groupName, "Llena tu nombre para continuar.", nombreInput);
-        return false;
-      }
-
-      if (nombre.length < 3) {
-        setError(groupName, "El nombre debe tener al menos 3 caracteres.", nombreInput);
-        return false;
-      }
-
-      if (telefono === "") {
-        setError(groupPhone, "Llena tu teléfono para continuar.", telefonoInput);
-        return false;
-      }
-
-      if (!/^[0-9]{10}$/.test(telefono)) {
-        setError(groupPhone, "El teléfono debe tener exactamente 10 números.", telefonoInput);
-        return false;
-      }
-
-      if (correo === "") {
-        setError(groupEmail, "Llena tu correo para continuar.", correoInput);
-        return false;
-      }
-
-      if (!correo.includes("@")) {
-        setError(groupEmail, "El correo no tiene @.", correoInput);
-        return false;
-      }
-
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) {
-        setError(groupEmail, "Escribe un correo válido, por ejemplo nombre@correo.com.", correoInput);
-        return false;
-      }
-
-      return true;
-    }
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      if (!validarFormulario()) {
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Enviando...";
-
-      const nombre = nombreInput.value.trim();
-      const telefono = telefonoInput.value.trim();
-      const correo = correoInput.value.trim().toLowerCase();
-
-      const { error } = await supabaseClient
-        .from("leads")
-        .insert([
-          {
-            nombre: nombre,
-            telefono: telefono,
-            correo: correo
-          }
-        ]);
-
-      if (error) {
-        console.error("Error de Supabase:", error);
-
-        message.textContent = "No pudimos guardar tus datos. Intenta nuevamente.";
-        message.className = "message error";
-
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Enviar datos";
-        return;
-      }
-
-      message.textContent = "Gracias. Tus datos fueron enviados correctamente.";
-      message.className = "message success";
-
-      form.reset();
 
       submitBtn.disabled = false;
       submitBtn.textContent = "Enviar datos";
-    });
-  </script>
+      return;
+    }
 
-</body>
-</html>
+    const correoEnviado = await enviarCorreoConfirmacion(nombre, correo);
+
+    if (!correoEnviado) {
+      message.textContent = "Tus datos se guardaron, pero no se pudo enviar el correo de confirmación.";
+      message.className = "message error";
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Enviar datos";
+      return;
+    }
+
+    message.textContent = "Gracias. Tus datos fueron enviados correctamente.";
+    message.className = "message success";
+
+    form.reset();
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Enviar datos";
+  });
+</script>
