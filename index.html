@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autocompara | Registro</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      color: #1f1f1f;
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 42px 22px 32px;
+      display: flex;
+      justify-content: center;
+      background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+    }
+
+    .mobile-wrap {
+      width: 100%;
+      max-width: 430px;
+    }
+
+    .header {
+      text-align: center;
+      padding-top: 16px;
+      margin-bottom: 34px;
+    }
+
+    .car-asset {
+      width: 210px;
+      max-width: 72%;
+      display: block;
+      margin: 0 auto 18px;
+    }
+
+    .logo-asset {
+      width: 245px;
+      max-width: 84%;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .form-card {
+      background: #ffffff;
+      border-radius: 30px;
+      padding: 32px 24px 28px;
+      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.10);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.08;
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      line-height: 1.42;
+      color: #444;
+      margin-bottom: 30px;
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 16px;
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+      border-bottom: 1.5px solid #dedede;
+    }
+
+    .icon {
+      width: 30px;
+      height: 30px;
+      margin-top: 5px;
+      object-fit: contain;
+    }
+
+    .field-content label {
+      display: block;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .field-content input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 18px;
+      color: #111;
+      padding: 4px 0;
+    }
+
+    .field-content input::placeholder {
+      color: #9a9a9a;
+    }
+
+    .field.error {
+      border-bottom-color: #ec0000;
+    }
+
+    .error-text {
+      display: none;
+      font-size: 12px;
+      color: #ec0000;
+      margin-top: 6px;
+      line-height: 1.3;
+    }
+
+    .field.error .error-text {
+      display: block;
+    }
+
+    .submit-btn {
+      width: 72%;
+      max-width: 260px;
+      height: 48px;
+      border: none;
+      border-radius: 999px;
+      background: #ec0000;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 8px auto 0;
+      box-shadow: none;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .message {
+      min-height: 20px;
+      margin-top: 18px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .message.error { color: #ec0000; }
+    .message.success { color: #087a3d; }
+
+    .legal {
+      font-size: 11px;
+      line-height: 1.4;
+      color: #777;
+      text-align: center;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="page">
+    <div class="mobile-wrap">
+
+      <header class="header">
+        <img src="assets/car-outline.svg" alt="AutoCompara" class="car-asset">
+        <img src="assets/logo-autocompara.svg" alt="AutoCompara" class="logo-asset">
+      </header>
+
+      <section class="form-card">
+        <h1>Completa tu registro</h1>
+
+        <p class="subtitle">
+          Ingresa tu información para dar seguimiento a tu solicitud.
+        </p>
+
+        <form id="leadForm" novalidate>
+
+          <div class="field" id="groupName">
+            <img src="assets/icon-user.svg" alt="" class="icon">
+            <div class="field-content">
+              <label for="nombre">Nombre completo</label>
+              <input type="text" id="nombre" placeholder="Escribe tu nombre" autocomplete="name">
+              <p class="error-text"></p>
+            </div>
+          </div>
+
+          <div class="field" id="groupPhone">
+            <img src="assets/icon-phone.svg" alt="" class="icon">
+            <div class="field-content">
+              <label for="telefono">Número de teléfono</label>
+              <input type="tel" id="telefono" placeholder="Escribe tu número" maxlength="10" inputmode="numeric" autocomplete="tel">
+              <p class="error-text"></p>
+            </div>
+          </div>
+
+          <div class="field" id="groupEmail">
+            <img src="assets/icon-mail.svg" alt="" class="icon">
+            <div class="field-content">
+              <label for="correo">Correo electrónico</label>
+              <input type="text" id="correo" placeholder="Escribe tu correo" autocomplete="email">
+              <p class="error-text"></p>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            Enviar datos
+          </button>
+
+          <p class="message" id="message"></p>
+
+          <p class="legal">
+            Al enviar tus datos aceptas ser contactado para recibir información relacionada con tu solicitud.
+          </p>
+
+        </form>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://cbjjzydlbnpsdkhufsok.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_hO-lDfWkWTbhla8tB5ehzg_gTufh3o4";
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const form = document.getElementById("leadForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const message = document.getElementById("message");
+
+    const nombreInput = document.getElementById("nombre");
+    const telefonoInput = document.getElementById("telefono");
+    const correoInput = document.getElementById("correo");
+
+    const groupName = document.getElementById("groupName");
+    const groupPhone = document.getElementById("groupPhone");
+    const groupEmail = document.getElementById("groupEmail");
+
+    telefonoInput.addEventListener("input", () => {
+      telefonoInput.value = telefonoInput.value.replace(/[^0-9]/g, "").slice(0, 10);
+    });
+
+    function setError(group, text, input) {
+      group.classList.add("error");
+      group.querySelector(".error-text").textContent = text;
+      message.textContent = text;
+      message.className = "message error";
+      input.focus();
+    }
+
+    function clearErrors() {
+      [groupName, groupPhone, groupEmail].forEach(group => {
+        group.classList.remove("error");
+        group.querySelector(".error-text").textContent = "";
+      });
+
+      message.textContent = "";
+      message.className = "message";
+    }
+
+    function validarFormulario() {
+      clearErrors();
+
+      const nombre = nombreInput.value.trim();
+      const telefono = telefonoInput.value.trim();
+      const correo = correoInput.value.trim();
+
+      if (nombre === "") {
+        setError(groupName, "Llena tu nombre para continuar.", nombreInput);
+        return false;
+      }
+
+      if (nombre.length < 3) {
+        setError(groupName, "El nombre debe tener al menos 3 caracteres.", nombreInput);
+        return false;
+      }
+
+      if (telefono === "") {
+        setError(groupPhone, "Llena tu teléfono para continuar.", telefonoInput);
+        return false;
+      }
+
+      if (!/^[0-9]{10}$/.test(telefono)) {
+        setError(groupPhone, "El teléfono debe tener exactamente 10 números.", telefonoInput);
+        return false;
+      }
+
+      if (correo === "") {
+        setError(groupEmail, "Llena tu correo para continuar.", correoInput);
+        return false;
+      }
+
+      if (!correo.includes("@")) {
+        setError(groupEmail, "El correo no tiene @.", correoInput);
+        return false;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) {
+        setError(groupEmail, "Escribe un correo válido, por ejemplo nombre@correo.com.", correoInput);
+        return false;
+      }
+
+      return true;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!validarFormulario()) {
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Enviando...";
+
+      const nombre = nombreInput.value.trim();
+      const telefono = telefonoInput.value.trim();
+      const correo = correoInput.value.trim().toLowerCase();
+
+      const { error } = await supabaseClient
+        .from("leads")
+        .insert([
+          {
+            nombre: nombre,
+            telefono: telefono,
+            correo: correo
+          }
+        ]);
+
+      if (error) {
+        console.error("Error de Supabase:", error);
+
+        message.textContent = "Error Supabase: " + error.message;
+        message.className = "message error";
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Enviar datos";
+        return;
+      }
+
+      message.textContent = "Gracias. Tus datos fueron enviados correctamente.";
+      message.className = "message success";
+
+      form.reset();
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Enviar datos";
+    });
+  </script>
+
+</body>
+</html>
