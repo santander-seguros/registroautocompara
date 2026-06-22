@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Autocompara | Registro</title>
+  <title>Santander Seguros | Registro</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -95,7 +95,8 @@
       margin-bottom: 8px;
     }
 
-    .field-content input {
+    .field-content input,
+    .field-content select {
       width: 100%;
       border: none;
       outline: none;
@@ -103,10 +104,16 @@
       font-size: 18px;
       color: #111;
       padding: 4px 0;
+      font-family: Arial, sans-serif;
     }
 
     .field-content input::placeholder {
       color: #9a9a9a;
+    }
+
+    .field-content select {
+      cursor: pointer;
+      appearance: none;
     }
 
     .field.error {
@@ -175,7 +182,7 @@
     <div class="mobile-wrap">
 
       <header class="header">
-        <img src="assets/car-outline.svg" alt="AutoCompara" class="car-asset">
+        <img src="assets/car-outline.svg" alt="Santander Seguros" class="car-asset">
         <img src="assets/logo-autocompara.svg" alt="AutoCompara" class="logo-asset">
       </header>
 
@@ -183,7 +190,7 @@
         <h1>Completa tu registro</h1>
 
         <p class="subtitle">
-          Ingresa tu información para dar seguimiento a tu solicitud.
+          Ingresa tu información y selecciona el producto de seguros que te interesa conocer.
         </p>
 
         <form id="leadForm" novalidate>
@@ -215,6 +222,20 @@
             </div>
           </div>
 
+          <div class="field" id="groupProduct">
+            <img src="assets/icon-product.svg" alt="" class="icon">
+            <div class="field-content">
+              <label for="producto_interes">Producto de interés</label>
+              <select id="producto_interes">
+                <option value="">Selecciona una opción</option>
+                <option value="Seguro de auto">Seguro de auto</option>
+                <option value="Seguro no auto">Seguro no auto</option>
+                <option value="Ambos">Ambos</option>
+              </select>
+              <p class="error-text"></p>
+            </div>
+          </div>
+
           <button type="submit" class="submit-btn" id="submitBtn">
             Enviar datos
           </button>
@@ -231,166 +252,180 @@
     </div>
   </main>
 
- <script>
-  const SUPABASE_URL = "https://cbjjzydlbnpsdkhufsok.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_hO-lDfWkWTbhla8tB5ehzg_gTufh3o4";
-  const EMAIL_FUNCTION_URL = "https://cbjjzydlbnpsdkhufsok.supabase.co/functions/v1/send-confirmation";
+  <script>
+    const SUPABASE_URL = "https://cbjjzydlbnpsdkhufsok.supabase.co";
+    const SUPABASE_KEY = "TU_SB_PUBLISHABLE_KEY";
+    const EMAIL_FUNCTION_URL = "https://cbjjzydlbnpsdkhufsok.supabase.co/functions/v1/send-confirmation";
 
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const form = document.getElementById("leadForm");
-  const submitBtn = document.getElementById("submitBtn");
-  const message = document.getElementById("message");
+    const form = document.getElementById("leadForm");
+    const submitBtn = document.getElementById("submitBtn");
+    const message = document.getElementById("message");
 
-  const nombreInput = document.getElementById("nombre");
-  const telefonoInput = document.getElementById("telefono");
-  const correoInput = document.getElementById("correo");
+    const nombreInput = document.getElementById("nombre");
+    const telefonoInput = document.getElementById("telefono");
+    const correoInput = document.getElementById("correo");
+    const productoInput = document.getElementById("producto_interes");
 
-  const groupName = document.getElementById("groupName");
-  const groupPhone = document.getElementById("groupPhone");
-  const groupEmail = document.getElementById("groupEmail");
+    const groupName = document.getElementById("groupName");
+    const groupPhone = document.getElementById("groupPhone");
+    const groupEmail = document.getElementById("groupEmail");
+    const groupProduct = document.getElementById("groupProduct");
 
-  telefonoInput.addEventListener("input", () => {
-    telefonoInput.value = telefonoInput.value.replace(/[^0-9]/g, "").slice(0, 10);
-  });
-
-  function setError(group, text, input) {
-    group.classList.add("error");
-    group.querySelector(".error-text").textContent = text;
-    message.textContent = text;
-    message.className = "message error";
-    input.focus();
-  }
-
-  function clearErrors() {
-    [groupName, groupPhone, groupEmail].forEach(group => {
-      group.classList.remove("error");
-      group.querySelector(".error-text").textContent = "";
+    telefonoInput.addEventListener("input", () => {
+      telefonoInput.value = telefonoInput.value.replace(/[^0-9]/g, "").slice(0, 10);
     });
 
-    message.textContent = "";
-    message.className = "message";
-  }
-
-  function validarFormulario() {
-    clearErrors();
-
-    const nombre = nombreInput.value.trim();
-    const telefono = telefonoInput.value.trim();
-    const correo = correoInput.value.trim();
-
-    if (nombre === "") {
-      setError(groupName, "Llena tu nombre para continuar.", nombreInput);
-      return false;
+    function setError(group, text, input) {
+      group.classList.add("error");
+      group.querySelector(".error-text").textContent = text;
+      message.textContent = text;
+      message.className = "message error";
+      input.focus();
     }
 
-    if (nombre.length < 3) {
-      setError(groupName, "El nombre debe tener al menos 3 caracteres.", nombreInput);
-      return false;
+    function clearErrors() {
+      [groupName, groupPhone, groupEmail, groupProduct].forEach(group => {
+        group.classList.remove("error");
+        group.querySelector(".error-text").textContent = "";
+      });
+
+      message.textContent = "";
+      message.className = "message";
     }
 
-    if (telefono === "") {
-      setError(groupPhone, "Llena tu teléfono para continuar.", telefonoInput);
-      return false;
+    function validarFormulario() {
+      clearErrors();
+
+      const nombre = nombreInput.value.trim();
+      const telefono = telefonoInput.value.trim();
+      const correo = correoInput.value.trim();
+      const producto_interes = productoInput.value.trim();
+
+      if (nombre === "") {
+        setError(groupName, "Llena tu nombre para continuar.", nombreInput);
+        return false;
+      }
+
+      if (nombre.length < 3) {
+        setError(groupName, "El nombre debe tener al menos 3 caracteres.", nombreInput);
+        return false;
+      }
+
+      if (telefono === "") {
+        setError(groupPhone, "Llena tu teléfono para continuar.", telefonoInput);
+        return false;
+      }
+
+      if (!/^[0-9]{10}$/.test(telefono)) {
+        setError(groupPhone, "El teléfono debe tener exactamente 10 números.", telefonoInput);
+        return false;
+      }
+
+      if (correo === "") {
+        setError(groupEmail, "Llena tu correo para continuar.", correoInput);
+        return false;
+      }
+
+      if (!correo.includes("@")) {
+        setError(groupEmail, "El correo no tiene @.", correoInput);
+        return false;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) {
+        setError(groupEmail, "Escribe un correo válido, por ejemplo nombre@correo.com.", correoInput);
+        return false;
+      }
+
+      if (producto_interes === "") {
+        setError(groupProduct, "Selecciona el producto de seguros que te interesa.", productoInput);
+        return false;
+      }
+
+      return true;
     }
 
-    if (!/^[0-9]{10}$/.test(telefono)) {
-      setError(groupPhone, "El teléfono debe tener exactamente 10 números.", telefonoInput);
-      return false;
-    }
-
-    if (correo === "") {
-      setError(groupEmail, "Llena tu correo para continuar.", correoInput);
-      return false;
-    }
-
-    if (!correo.includes("@")) {
-      setError(groupEmail, "El correo no tiene @.", correoInput);
-      return false;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)) {
-      setError(groupEmail, "Escribe un correo válido, por ejemplo nombre@correo.com.", correoInput);
-      return false;
-    }
-
-    return true;
-  }
-
-  async function enviarCorreoConfirmacion(nombre, correo) {
-    const response = await fetch(EMAIL_FUNCTION_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        nombre: nombre,
-        correo: correo
-      })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error("Error al enviar correo:", result);
-      return false;
-    }
-
-    return true;
-  }
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    if (!validarFormulario()) {
-      return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Enviando...";
-
-    const nombre = nombreInput.value.trim();
-    const telefono = telefonoInput.value.trim();
-    const correo = correoInput.value.trim().toLowerCase();
-
-    const { error } = await supabaseClient
-      .from("leads")
-      .insert([
-        {
+    async function enviarCorreoConfirmacion(nombre, correo, producto_interes) {
+      const response = await fetch(EMAIL_FUNCTION_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
           nombre: nombre,
-          telefono: telefono,
-          correo: correo
-        }
-      ]);
+          correo: correo,
+          producto_interes: producto_interes
+        })
+      });
 
-    if (error) {
-      console.error("Error de Supabase:", error);
+      const result = await response.json();
 
-      message.textContent = "No pudimos guardar tus datos. Intenta nuevamente.";
-      message.className = "message error";
+      if (!response.ok) {
+        console.error("Error al enviar correo:", result);
+        return false;
+      }
+
+      return true;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!validarFormulario()) {
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Enviando...";
+
+      const nombre = nombreInput.value.trim();
+      const telefono = telefonoInput.value.trim();
+      const correo = correoInput.value.trim().toLowerCase();
+      const producto_interes = productoInput.value.trim();
+
+      const { error } = await supabaseClient
+        .from("leads")
+        .insert([
+          {
+            nombre: nombre,
+            telefono: telefono,
+            correo: correo,
+            producto_interes: producto_interes
+          }
+        ]);
+
+      if (error) {
+        console.error("Error de Supabase:", error);
+
+        message.textContent = "No pudimos guardar tus datos. Intenta nuevamente.";
+        message.className = "message error";
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Enviar datos";
+        return;
+      }
+
+      const correoEnviado = await enviarCorreoConfirmacion(nombre, correo, producto_interes);
+
+      if (!correoEnviado) {
+        message.textContent = "Tus datos se guardaron, pero no se pudo enviar el correo de confirmación.";
+        message.className = "message error";
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Enviar datos";
+        return;
+      }
+
+      message.textContent = "Gracias. Tus datos fueron enviados correctamente.";
+      message.className = "message success";
+
+      form.reset();
 
       submitBtn.disabled = false;
       submitBtn.textContent = "Enviar datos";
-      return;
-    }
+    });
+  </script>
 
-    const correoEnviado = await enviarCorreoConfirmacion(nombre, correo);
-
-    if (!correoEnviado) {
-      message.textContent = "Tus datos se guardaron, pero no se pudo enviar el correo de confirmación.";
-      message.className = "message error";
-
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Enviar datos";
-      return;
-    }
-
-    message.textContent = "Gracias. Tus datos fueron enviados correctamente.";
-    message.className = "message success";
-
-    form.reset();
-
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Enviar datos";
-  });
-</script>
+</body>
+</html>
